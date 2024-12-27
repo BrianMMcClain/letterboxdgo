@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"path"
 	"sort"
 	"strconv"
 	"strings"
@@ -120,10 +119,9 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 		entry := new(DiaryEntry)
 
 		// Get title and slug
-		s.Find("h3.headline-3 a").Each(func(i int, r *goquery.Selection) {
-			entry.Title = r.Text()
-			slug, _ := r.Attr("href")
-			entry.Slug = path.Base(slug)
+		s.Find("td.td-film-details").Each(func(i int, r *goquery.Selection) {
+			entry.Title = r.Find("a").Text()
+			entry.Slug, _ = r.Find("div.poster").Attr("data-film-slug")
 		})
 
 		// Get watch date
