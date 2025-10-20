@@ -5,6 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -16,10 +17,19 @@ func Get(url string) (io.ReadCloser, error) {
 	for i := 0; i < MAX_RETRIES; i++ {
 
 		// Send request
-		res, err := http.Get(url)
+		userAgent := "curl"
+		req, err := http.NewRequest("GET", url, nil)
 		if err != nil {
-			slog.Error("Error sending GET request", "error", err)
-			return nil, err
+			slog.Error("Could not create GET request", "error", err)
+			os.Exit(1)
+		}
+		req.Header.Set("User-Agent", userAgent)
+
+		client := &http.Client{}
+		res, err := client.Do(req)
+		if err != nil {
+			slog.Error("Could not send GET request", "error", err)
+			os.Exit(1)
 		}
 
 		if res.StatusCode == 200 {
