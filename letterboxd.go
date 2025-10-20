@@ -3,7 +3,9 @@ package letterboxdgo
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,6 +13,8 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 )
+
+var REQ_DELAY = time.Second * 8 // Delay between requests to avoid rate limiting
 
 type DiaryEntry struct {
 	Title       string
@@ -64,9 +68,11 @@ func GetDiary(user string) []*DiaryEntry {
 	// Get page count
 	pageCount := 0
 
-	res, err := http.Get(fmt.Sprintf("https://letterboxd.com/%s/films/diary/", user))
+	slog.Debug("Sending request to get top diary page")
+	res, err := http.Get(fmt.Sprintf("https://letterboxd.com/%s/diary/", user))
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error getting top diary page", "error", err)
+		os.Exit(1)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
@@ -84,8 +90,12 @@ func GetDiary(user string) []*DiaryEntry {
 	pageCount++
 
 	var diary []*DiaryEntry
-	for i := pageCount; i > 0; i-- {
-		diary = append(diary, getDiaryPage(user, i)...)
+	for i := 1; i <= pageCount; i++ {
+		slog.Debug("Getting diary page", "count", i)
+		page := getDiaryPage(user, i)
+		diary = append(diary, page...)
+
+		time.Sleep(REQ_DELAY)
 	}
 
 	// Sort entire diary by watch date
@@ -98,14 +108,18 @@ func GetDiary(user string) []*DiaryEntry {
 
 func getDiaryPage(user string, page int) []*DiaryEntry {
 
-	url := fmt.Sprintf("https://letterboxd.com/%s/films/diary/page/%v", user, page)
+	url := fmt.Sprintf("https://letterboxd.com/%s/diary/films/page/%v", user, page)
+	slog.Debug("Sending request to get diary page", "page", page)
+
 	res, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error sending request to get diary page", "page", page, "error", err)
+		os.Exit(1)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		slog.Error("Error response getting diary page", "page", page, "code", res.StatusCode, "message", res.Status)
+		os.Exit(1)
 	}
 
 	doc, err := goquery.NewDocumentFromReader(res.Body)
@@ -119,16 +133,20 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 		entry := new(DiaryEntry)
 
 		// Get title and slug
-		s.Find("td.td-film-details").Each(func(i int, r *goquery.Selection) {
-			entry.Title = r.Find("a").Text()
-			entry.Slug, _ = r.Find("div.poster").Attr("data-film-slug")
+		s.Find("td.col-production").Each(func(i int, r *goquery.Selection) {
+			entry.Title = r.Find("h2.name").Find("a").Text()
+			link, _ := r.Find("h2.name").Find("a").Attr("href")
+			sLink := strings.Split(link, "/")
+			entry.Slug = sLink[len(sLink)-2]
+			//entry.Slug, _ = r.Find("div.react-component").Attr("data-film-slug")
 		})
 
 		// Get watch date
-		s.Find("td.diary-day a").Each(func(i int, r *goquery.Selection) {
+		s.Find("td.col-daydate a").Each(func(i int, r *goquery.Selection) {
 			fullDatePath, _ := r.Attr("href")
-			datePath := strings.ReplaceAll(fullDatePath, fmt.Sprintf("/%s/films/diary/for/", user), "")
-			entry.Date, _ = time.Parse("2006/01/02/", datePath)
+			datePath := strings.ReplaceAll(fullDatePath, fmt.Sprintf("/%s/diary/films/for/", user), "")
+			datePath = strings.ReplaceAll(datePath, "/films/", "")
+			entry.Date, _ = time.Parse("2006/01/02", datePath)
 		})
 
 		// Get rating
@@ -138,7 +156,7 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 		})
 
 		// Get Rewatch
-		s.Find("td.td-rewatch").Each(func(i int, r *goquery.Selection) {
+		s.Find("td.col-rewatch").Each(func(i int, r *goquery.Selection) {
 			classes, _ := r.Attr("class")
 			if strings.Contains(classes, "icon-status-off") {
 				entry.Rewatch = false
@@ -149,14 +167,14 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 
 		// Get Liked
 		entry.Liked = false
-		s.Find("td.td-like").Each(func(i int, r *goquery.Selection) {
-			r.Find("span.hide-for-owner").Each(func(i int, l *goquery.Selection) {
+		s.Find("td.col-like").Each(func(i int, r *goquery.Selection) {
+			r.Find("span.icon-liked").Each(func(i int, l *goquery.Selection) {
 				entry.Liked = true
 			})
 		})
 
 		// Get release year
-		s.Find("td.td-released").Each(func(i int, r *goquery.Selection) {
+		s.Find("td.col-releaseyear").Each(func(i int, r *goquery.Selection) {
 			entry.ReleaseYear, _ = strconv.Atoi(r.Find("span").Text())
 		})
 
