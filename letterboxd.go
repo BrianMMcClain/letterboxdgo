@@ -14,8 +14,6 @@ import (
 	"github.com/PuerkitoBio/goquery"
 )
 
-var REQ_DELAY = time.Second * 8 // Delay between requests to avoid rate limiting
-
 type DiaryEntry struct {
 	Title       string
 	Slug        string
@@ -69,17 +67,14 @@ func GetDiary(user string) []*DiaryEntry {
 	pageCount := 0
 
 	slog.Debug("Sending request to get top diary page")
-	res, err := http.Get(fmt.Sprintf("https://letterboxd.com/%s/diary/", user))
+	res, err := Get(fmt.Sprintf("https://letterboxd.com/%s/diary/", user))
 	if err != nil {
 		slog.Error("Error getting top diary page", "error", err)
 		os.Exit(1)
 	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
-	}
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	defer res.Close()
+	doc, err := goquery.NewDocumentFromReader(res)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -94,8 +89,6 @@ func GetDiary(user string) []*DiaryEntry {
 		slog.Debug("Getting diary page", "count", i)
 		page := getDiaryPage(user, i)
 		diary = append(diary, page...)
-
-		time.Sleep(REQ_DELAY)
 	}
 
 	// Sort entire diary by watch date
@@ -110,19 +103,14 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 
 	url := fmt.Sprintf("https://letterboxd.com/%s/diary/films/page/%v", user, page)
 	slog.Debug("Sending request to get diary page", "page", page)
-
-	res, err := http.Get(url)
+	res, err := Get(url)
 	if err != nil {
-		slog.Error("Error sending request to get diary page", "page", page, "error", err)
-		os.Exit(1)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		slog.Error("Error response getting diary page", "page", page, "code", res.StatusCode, "message", res.Status)
+		slog.Error("Error getting diary page", "error", err)
 		os.Exit(1)
 	}
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	defer res.Close()
+	doc, err := goquery.NewDocumentFromReader(res)
 	if err != nil {
 		log.Fatal(err)
 	}
