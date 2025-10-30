@@ -133,8 +133,7 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 		s.Find("td.col-daydate a").Each(func(i int, r *goquery.Selection) {
 			fullDatePath, _ := r.Attr("href")
 			datePath := strings.ReplaceAll(fullDatePath, fmt.Sprintf("/%s/diary/films/for/", user), "")
-			datePath = strings.ReplaceAll(datePath, "/films/", "")
-			entry.Date, _ = time.Parse("2006/01/02", datePath)
+			entry.Date, _ = time.Parse("2006/01/02/", datePath)
 		})
 
 		// Get rating
