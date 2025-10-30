@@ -2,9 +2,7 @@ package letterboxdgo
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
-	"net/http"
 	"os"
 	"sort"
 	"strconv"
@@ -33,31 +31,25 @@ func GetFilm(slug string) *Film {
 
 	f := new(Film)
 
-	res, err := http.Get("https://letterboxd.com/film/" + slug)
+	slog.Debug("Sending request to get film", "slug", slug)
+	res, err := Get(fmt.Sprintf("https://letterboxd.com/film/%s", slug))
 	if err != nil {
-		log.Fatal(err)
-	}
-	defer res.Body.Close()
-	if res.StatusCode != 200 {
-		log.Fatalf("status code error: %d %s", res.StatusCode, res.Status)
+		slog.Error("Error getting film", "slug", slug, "error", err)
+		os.Exit(1)
 	}
 
-	doc, err := goquery.NewDocumentFromReader(res.Body)
+	defer res.Close()
+	doc, err := goquery.NewDocumentFromReader(res)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error parsing film page", "slug", slug, "error", err)
+		os.Exit(1)
 	}
 
 	// Get title
-	doc.Find("section.film-header-group span.name").Each(func(i int, s *goquery.Selection) {
-		f.Title = s.Text()
-	})
+	f.Title = doc.Find("div.details span.name").Text() //.Each(func(i int, s *goquery.Selection) {
 
 	// Get TMDb ID
-	doc.Find("[data-track-action='TMDb']").Each(func(i int, s *goquery.Selection) {
-		href, _ := s.Attr("href")
-		f.TMDb = strings.ReplaceAll(href, "https://www.themoviedb.org/movie/", "")
-		f.TMDb = strings.ReplaceAll(f.TMDb, "/", "")
-	})
+	f.TMDb, _ = doc.Find("body").Attr("data-tmdb-id")
 
 	return f
 }
@@ -66,17 +58,17 @@ func GetDiary(user string) []*DiaryEntry {
 	// Get page count
 	pageCount := 0
 
-	slog.Debug("Sending request to get top diary page")
+	slog.Debug("Sending request to get diary page")
 	res, err := Get(fmt.Sprintf("https://letterboxd.com/%s/diary/", user))
 	if err != nil {
-		slog.Error("Error getting top diary page", "error", err)
+		slog.Error("Error getting diary page", "error", err)
 		os.Exit(1)
 	}
 
 	defer res.Close()
 	doc, err := goquery.NewDocumentFromReader(res)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error parsing diary page", "error", err)
 	}
 
 	doc.Find("li.paginate-page").Each(func(i int, s *goquery.Selection) {
@@ -112,7 +104,7 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 	defer res.Close()
 	doc, err := goquery.NewDocumentFromReader(res)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error parsing diary page", "error", err)
 	}
 
 	var entries []*DiaryEntry
