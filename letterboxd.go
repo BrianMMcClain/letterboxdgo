@@ -123,10 +123,7 @@ func getDiaryPage(user string, page int) []*DiaryEntry {
 		// Get title and slug
 		s.Find("td.col-production").Each(func(i int, r *goquery.Selection) {
 			entry.Title = r.Find("h2.name").Find("a").Text()
-			link, _ := r.Find("h2.name").Find("a").Attr("href")
-			sLink := strings.Split(link, "/")
-			entry.Slug = sLink[len(sLink)-2]
-			//entry.Slug, _ = r.Find("div.react-component").Attr("data-film-slug")
+			entry.Slug, _ = r.Find("div.react-component").Attr("data-item-slug")
 		})
 
 		// Get watch date
