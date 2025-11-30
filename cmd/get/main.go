@@ -6,8 +6,10 @@ import (
 	"log/slog"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/brianmmcclain/letterboxdgo"
+	"github.com/brianmmcclain/tmdbgo"
 )
 
 func main() {
@@ -19,6 +21,14 @@ func main() {
 	outFilename := flag.String("out", "stats.csv", "File to write stats to")
 	flag.Parse()
 
+	tmdbKey := os.Getenv("TMDB_KEY")
+	includeTMDB := tmdbKey != ""
+
+	tmdb := new(tmdbgo.TMDB)
+	if includeTMDB {
+		tmdb = tmdbgo.NewTMDB(tmdbKey)
+	}
+
 	d := letterboxdgo.GetDiary(*username)
 
 	outFile, err := os.Create(*outFilename)
@@ -29,7 +39,7 @@ func main() {
 	writer := csv.NewWriter(outFile)
 	defer writer.Flush()
 
-	headers := []string{"Title", "ReleaseYear", "Watched", "Rating", "Liked", "Rewatch", "Slug", "TMDB"}
+	headers := []string{"Title", "ReleaseYear", "Watched", "Rating", "Liked", "Rewatch", "Slug", "TMDB", "Generes", "Language"}
 	err = writer.Write(headers)
 	if err != nil {
 		slog.Error("Error writing headers", "error", err)
@@ -43,6 +53,17 @@ func main() {
 		}
 
 		m := letterboxdgo.GetFilm(v.Slug)
+
+		genres := []string{}
+		language := ""
+		if includeTMDB {
+			tmdbMovie := tmdb.GetMovie(m.TMDb)
+			for _, g := range tmdbMovie.Genres {
+				genres = append(genres, g.Name)
+			}
+			language = tmdbMovie.Language
+		}
+
 		row := []string{
 			v.Title,
 			strconv.Itoa(v.ReleaseYear),
@@ -52,6 +73,8 @@ func main() {
 			strconv.FormatBool(v.Rewatch),
 			v.Slug,
 			m.TMDb,
+			strings.Join(genres, "|"),
+			language,
 		}
 		err = writer.Write(row)
 		if err != nil {
