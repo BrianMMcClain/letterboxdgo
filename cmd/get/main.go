@@ -46,7 +46,7 @@ func main() {
 		row := []string{
 			v.Title,
 			strconv.Itoa(v.ReleaseYear),
-			v.Date.String(),
+			v.Date.Format("2006-01-02"),
 			strconv.Itoa(v.Rating),
 			strconv.FormatBool(v.Liked),
 			strconv.FormatBool(v.Rewatch),
