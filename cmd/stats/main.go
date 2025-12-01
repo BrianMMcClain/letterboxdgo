@@ -10,10 +10,18 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/brianmmcclain/letterboxdgo"
 )
+
+type Movie struct {
+	Entry    *letterboxdgo.DiaryEntry
+	Genres   []string
+	Language string
+	Runtime  int
+}
 
 func main() {
 
@@ -30,7 +38,7 @@ func main() {
 	}
 	defer inFile.Close()
 
-	diary := []*letterboxdgo.DiaryEntry{}
+	movies := []*Movie{}
 
 	reader := csv.NewReader(inFile)
 	// Skip headers
@@ -50,16 +58,22 @@ func main() {
 			os.Exit(-1)
 		}
 
-		d := &letterboxdgo.DiaryEntry{}
-		d.Title = record[0]
-		d.ReleaseYear, _ = strconv.Atoi(record[1])
-		d.Date, _ = time.Parse("2006-01-02", record[2])
-		d.Rating, _ = strconv.Atoi(record[3])
-		d.Liked, _ = strconv.ParseBool(record[4])
-		d.Rewatch, _ = strconv.ParseBool(record[5])
-		d.Slug = record[6]
+		m := new(Movie)
+		entry := &letterboxdgo.DiaryEntry{}
+		entry.Title = record[0]
+		entry.ReleaseYear, _ = strconv.Atoi(record[1])
+		entry.Date, _ = time.Parse("2006-01-02", record[2])
+		entry.Rating, _ = strconv.Atoi(record[3])
+		entry.Liked, _ = strconv.ParseBool(record[4])
+		entry.Rewatch, _ = strconv.ParseBool(record[5])
+		entry.Slug = record[6]
+		m.Entry = entry
 
-		diary = append(diary, d)
+		m.Genres = strings.Split(record[8], "|")
+		m.Language = record[9]
+		m.Runtime, _ = strconv.Atoi(record[10])
+
+		movies = append(movies, m)
 	}
 
 	count := 0
@@ -68,26 +82,33 @@ func main() {
 	thisYearCount := 0
 	watches := make(map[string]int)
 
-	for _, entry := range diary {
-		if entry.Date.Year() == 2025 {
+	runtime := 0
+
+	for _, movie := range movies {
+		if movie.Entry.Date.Year() == 2025 {
 			count++
 		}
-		if entry.Liked {
+		if movie.Entry.Liked {
 			liked++
 		}
-		if entry.Rewatch {
+		if movie.Entry.Rewatch {
 			rewatches++
 		}
-		if entry.ReleaseYear == 2025 {
+		if movie.Entry.ReleaseYear == 2025 {
 			thisYearCount++
 		}
 
-		watches[entry.Slug]++
+		watches[movie.Entry.Slug]++
+		runtime += movie.Runtime
 	}
+
+	runtimeHours := int(runtime / 60)
+	runtimeMinutes := runtime % 60
 
 	fmt.Printf("Total entries in 2025: %d\n", count)
 	fmt.Printf("Unique films: %d\n", len(slices.Collect(maps.Keys(watches))))
 	fmt.Printf("Films liked: %d\n", liked)
 	fmt.Printf("Films rewatched: %d\n", rewatches)
 	fmt.Printf("2025 films watched: %d\n", thisYearCount)
+	fmt.Printf("Total runtime: %dh %dm\n", runtimeHours, runtimeMinutes)
 }
