@@ -51,6 +51,10 @@ func main() {
 		os.Exit(-1)
 	}
 
+	var first *Movie = nil
+	var last *Movie = nil
+	var oldest *Movie = nil
+
 	for {
 		record, err := reader.Read()
 		if err == io.EOF {
@@ -79,6 +83,16 @@ func main() {
 		movies = append(movies, m)
 		ratings = append(ratings, entry.Rating)
 		totalRating += entry.Rating
+
+		if first == nil || first.Entry.Date.After(entry.Date) || first.Entry.Date.Equal(entry.Date) {
+			first = m
+		}
+		if last == nil || last.Entry.Date.Before(entry.Date) {
+			last = m
+		}
+		if oldest == nil || oldest.Entry.ReleaseYear > entry.ReleaseYear {
+			oldest = m
+		}
 	}
 
 	count := 0
@@ -133,4 +147,8 @@ func main() {
 	fmt.Println()
 	fmt.Printf("Avg rating: %.1f\n", averageRating)
 	fmt.Printf("Median rating: %d\n", medianRating)
+	fmt.Println()
+	fmt.Printf("First movie watched: %s\n", first.Entry.Title)
+	fmt.Printf("Last movie watched: %s\n", last.Entry.Title)
+	fmt.Printf("Oldest movie watched: %s\n", oldest.Entry.Title)
 }
