@@ -7,6 +7,7 @@ import (
 	"io"
 	"log/slog"
 	"maps"
+	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -39,6 +40,8 @@ func main() {
 	defer inFile.Close()
 
 	movies := []*Movie{}
+	ratings := []int{}
+	totalRating := 0
 
 	reader := csv.NewReader(inFile)
 	// Skip headers
@@ -74,6 +77,8 @@ func main() {
 		m.Runtime, _ = strconv.Atoi(record[10])
 
 		movies = append(movies, m)
+		ratings = append(ratings, entry.Rating)
+		totalRating += entry.Rating
 	}
 
 	count := 0
@@ -105,10 +110,27 @@ func main() {
 	runtimeHours := int(runtime / 60)
 	runtimeMinutes := runtime % 60
 
+	averageRating := float64(totalRating) / float64(count)
+
+	// Calculate median rating
+	medianRating := 0
+	slices.Sort(ratings)
+	if len(ratings)%2 == 0 {
+		// Even number of elements, find the average of the two middle numbers
+		lIndex := int(math.Floor(float64(len(ratings)) / 2.0))
+		rIndex := int(math.Ceil(float64(len(ratings)) / 2.0))
+		medianRating = (ratings[lIndex] + ratings[rIndex]) / 2.0
+	} else {
+		medianRating = ratings[len(ratings)/2]
+	}
+
 	fmt.Printf("Total entries in 2025: %d\n", count)
 	fmt.Printf("Unique films: %d\n", len(slices.Collect(maps.Keys(watches))))
 	fmt.Printf("Films liked: %d\n", liked)
 	fmt.Printf("Films rewatched: %d\n", rewatches)
 	fmt.Printf("2025 films watched: %d\n", thisYearCount)
 	fmt.Printf("Total runtime: %dh %dm\n", runtimeHours, runtimeMinutes)
+	fmt.Println()
+	fmt.Printf("Avg rating: %.1f\n", averageRating)
+	fmt.Printf("Median rating: %d\n", medianRating)
 }
