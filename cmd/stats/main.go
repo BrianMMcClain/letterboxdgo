@@ -150,5 +150,5 @@ func main() {
 	fmt.Println()
 	fmt.Printf("First movie watched: %s\n", first.Entry.Title)
 	fmt.Printf("Last movie watched: %s\n", last.Entry.Title)
-	fmt.Printf("Oldest movie watched: %s\n", oldest.Entry.Title)
+	fmt.Printf("Oldest movie watched: %s (%d)\n", oldest.Entry.Title, oldest.Entry.ReleaseYear)
 }
