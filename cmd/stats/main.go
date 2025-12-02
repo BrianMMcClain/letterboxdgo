@@ -29,6 +29,7 @@ func main() {
 	//slog.SetLogLoggerLevel(slog.LevelDebug)
 
 	inFilename := flag.String("in", "stats.csv", "Source stats file")
+	generateGraphs := flag.Bool("graphs", false, "Generate graphs for blog")
 	flag.Parse()
 
 	slog.Debug("Reading CSV file", "file", *inFilename)
@@ -100,6 +101,19 @@ func main() {
 	rewatches := 0
 	thisYearCount := 0
 	watches := make(map[string]int)
+	ratingDistribution := map[int]int{
+		0:  0,
+		1:  0,
+		2:  0,
+		3:  0,
+		4:  0,
+		5:  0,
+		6:  0,
+		7:  0,
+		8:  0,
+		9:  0,
+		10: 0,
+	}
 
 	runtime := 0
 
@@ -116,6 +130,8 @@ func main() {
 		if movie.Entry.ReleaseYear == 2025 {
 			thisYearCount++
 		}
+
+		ratingDistribution[movie.Entry.Rating]++
 
 		watches[movie.Entry.Slug]++
 		runtime += movie.Runtime
@@ -151,4 +167,47 @@ func main() {
 	fmt.Printf("First movie watched: %s\n", first.Entry.Title)
 	fmt.Printf("Last movie watched: %s\n", last.Entry.Title)
 	fmt.Printf("Oldest movie watched: %s (%d)\n", oldest.Entry.Title, oldest.Entry.ReleaseYear)
+
+	fmt.Println("\n\n")
+	if *generateGraphs {
+		// Collect values
+		ratingDistributionValues := []string{}
+		for i := 0; i <= 10; i++ {
+			ratingDistributionValues = append(ratingDistributionValues, strconv.Itoa(ratingDistribution[i]))
+		}
+
+		// Print graphs
+		// Rating distribution
+		ratingDistributionGraph := fmt.Sprintf(`{{< chart id="allRatings" title="Rating distribution of all watched films" width="100" >}}
+
+{
+ type: 'bar',
+ data: {
+    labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'],
+    datasets: [{
+        label: '# of Films',
+        data: [%s],
+        borderWidth: 1
+    }]
+ },
+ options: {
+    scales: {
+        y: {
+            beginAtZero: true
+        }
+    }
+ }
+};
+
+{{</ chart >}}`, strings.Join(ratingDistributionValues, ","))
+
+		fmt.Println(ratingDistributionGraph)
+		fmt.Println("\n\n")
+		// Table
+		fmt.Println("|Rating|Count|")
+		fmt.Println("|------|-----|")
+		for i := 0; i <= 10; i++ {
+			fmt.Printf("|%d|%d|\n", i, ratingDistribution[i])
+		}
+	}
 }
