@@ -1,6 +1,7 @@
 package letterboxdgo
 
 import (
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -23,8 +24,21 @@ type DiaryEntry struct {
 }
 
 type Film struct {
-	Title string
-	TMDb  string
+	Title     string
+	TMDb      string
+	AvgRating float64
+	Ratings   int
+	Reviews   int
+	Genres    []string
+}
+
+type FilmData struct {
+	AggregateRating struct {
+		AvgRating float64 `json:"ratingValue"`
+		Ratings   int     `json:"ratingCount"`
+		Reviews   int     `json:"reviewCount"`
+	} `json:"aggregateRating"`
+	Genres []string `json:"genre"`
 }
 
 func GetFilm(slug string) *Film {
@@ -50,6 +64,19 @@ func GetFilm(slug string) *Film {
 
 	// Get TMDb ID
 	f.TMDb, _ = doc.Find("body").Attr("data-tmdb-id")
+
+	// Get script JSON
+	jData := strings.TrimSpace(strings.ReplaceAll(strings.ReplaceAll(doc.Find("script[type=\"application/ld+json\"]").Text(), "/* <![CDATA[ */", ""), "/* ]]> */", ""))
+	var filmData FilmData
+	err = json.Unmarshal([]byte(jData), &filmData)
+	if err != nil {
+		slog.Error("Error parsing film JSON data", "slug", slug, "error", err)
+		os.Exit(1)
+	}
+	f.AvgRating = filmData.AggregateRating.AvgRating
+	f.Ratings = filmData.AggregateRating.Ratings
+	f.Reviews = filmData.AggregateRating.Reviews
+	f.Genres = filmData.Genres
 
 	return f
 }

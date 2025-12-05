@@ -39,7 +39,7 @@ func main() {
 	writer := csv.NewWriter(outFile)
 	defer writer.Flush()
 
-	headers := []string{"Title", "ReleaseYear", "Watched", "Rating", "Liked", "Rewatch", "Slug", "TMDB", "Generes", "Language", "Runtime"}
+	headers := []string{"Title", "ReleaseYear", "Watched", "Rating", "Liked", "Rewatch", "Slug", "TMDB", "Generes", "Language", "Runtime", "AvgRating", "Ratings", "Reviews"}
 	err = writer.Write(headers)
 	if err != nil {
 		slog.Error("Error writing headers", "error", err)
@@ -78,6 +78,9 @@ func main() {
 			strings.Join(genres, "|"),
 			language,
 			strconv.Itoa(runtime),
+			strconv.FormatFloat(float64(m.AvgRating), 'f', 2, 64),
+			strconv.Itoa(int(m.Ratings)),
+			strconv.Itoa(int(m.Reviews)),
 		}
 		err = writer.Write(row)
 		if err != nil {
