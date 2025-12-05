@@ -17,11 +17,3 @@ Gather diary information and write it to a CSV file. The folloing command gather
 ```
 $ go run cmd/get/main.go -username <USERNAME> -year 2024 -out stats.csv
 ```
-
-## Calculate stats
-
-Parse the CSV file and calculate stats. The following command parses the `stats.csv` file and prints the statistics to standard out.
-
-```
-$ go run cmd/stats/main.go -in stats.csv
-```
