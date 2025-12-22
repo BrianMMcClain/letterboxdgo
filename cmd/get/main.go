@@ -39,7 +39,7 @@ func main() {
 	writer := csv.NewWriter(outFile)
 	defer writer.Flush()
 
-	headers := []string{"Title", "ReleaseYear", "Watched", "Rating", "Liked", "Rewatch", "Slug", "TMDB", "Generes", "Language", "Runtime", "AvgRating", "Ratings", "Reviews"}
+	headers := []string{"Title", "ReleaseYear", "Watched", "Rating", "Liked", "Rewatch", "Slug", "TMDB", "Generes", "Language", "Runtime", "AvgRating", "Ratings", "Reviews", "Countries"}
 	err = writer.Write(headers)
 	if err != nil {
 		slog.Error("Error writing headers", "error", err)
@@ -56,6 +56,7 @@ func main() {
 
 		genres := []string{}
 		language := ""
+		countries := []string{}
 		runtime := 0
 		if includeTMDB {
 			tmdbMovie := tmdb.GetMovie(m.TMDb)
@@ -64,6 +65,9 @@ func main() {
 			}
 			language = tmdbMovie.Language
 			runtime = tmdbMovie.Runtime
+			for _, c := range tmdbMovie.ProductionCountries {
+				countries = append(countries, c.Name)
+			}
 		}
 
 		row := []string{
@@ -81,6 +85,7 @@ func main() {
 			strconv.FormatFloat(float64(m.AvgRating), 'f', 2, 64),
 			strconv.Itoa(int(m.Ratings)),
 			strconv.Itoa(int(m.Reviews)),
+			strings.Join(countries, "|"),
 		}
 		err = writer.Write(row)
 		if err != nil {

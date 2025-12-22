@@ -2,10 +2,6 @@ github.com/PuerkitoBio/goquery v1.11.0 h1:jZ7pwMQXIITcUXNH83LLk+txlaEy6NVOfTuP43
 github.com/PuerkitoBio/goquery v1.11.0/go.mod h1:wQHgxUOU3JGuj3oD/QFfxUdlzW6xPHfqyHre6VMY4DQ=
 github.com/andybalholm/cascadia v1.3.3 h1:AG2YHrzJIm4BZ19iwJ/DAua6Btl3IwJX+VI4kktS1LM=
 github.com/andybalholm/cascadia v1.3.3/go.mod h1:xNd9bqTn98Ln4DwST8/nG+H0yuB8Hmgu1YHNnWw0GeA=
-github.com/brianmmcclain/tmdbgo v0.0.0-20241226223525-bce4d2786d2f h1:v2TjKi9hd6xupyk5wQVZ/0sVtR8YXwo3Jdls2vRM/m8=
-github.com/brianmmcclain/tmdbgo v0.0.0-20241226223525-bce4d2786d2f/go.mod h1:KmDPkX+zThPbVKXc7f0GrNcOsFgdWYgZI2nCSC8gmoo=
-github.com/brianmmcclain/tmdbgo v0.0.0-20251130233202-d5eed3bee97c h1:bdy4ay+hTLKq97mwDraB5z6+XXX7549IYMI6cymVD4s=
-github.com/brianmmcclain/tmdbgo v0.0.0-20251130233202-d5eed3bee97c/go.mod h1:KmDPkX+zThPbVKXc7f0GrNcOsFgdWYgZI2nCSC8gmoo=
 github.com/brianmmcclain/tmdbgo v0.0.0-20251222172847-079fb64c32db h1:S0V1MWk5QMvRkZ3eFDnbxfZyFZo3/P9+B3NJxm0YlHg=
 github.com/brianmmcclain/tmdbgo v0.0.0-20251222172847-079fb64c32db/go.mod h1:KmDPkX+zThPbVKXc7f0GrNcOsFgdWYgZI2nCSC8gmoo=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
