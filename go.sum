@@ -6,6 +6,8 @@ github.com/brianmmcclain/tmdbgo v0.0.0-20241226223525-bce4d2786d2f h1:v2TjKi9hd6
 github.com/brianmmcclain/tmdbgo v0.0.0-20241226223525-bce4d2786d2f/go.mod h1:KmDPkX+zThPbVKXc7f0GrNcOsFgdWYgZI2nCSC8gmoo=
 github.com/brianmmcclain/tmdbgo v0.0.0-20251130233202-d5eed3bee97c h1:bdy4ay+hTLKq97mwDraB5z6+XXX7549IYMI6cymVD4s=
 github.com/brianmmcclain/tmdbgo v0.0.0-20251130233202-d5eed3bee97c/go.mod h1:KmDPkX+zThPbVKXc7f0GrNcOsFgdWYgZI2nCSC8gmoo=
+github.com/brianmmcclain/tmdbgo v0.0.0-20251222172847-079fb64c32db h1:S0V1MWk5QMvRkZ3eFDnbxfZyFZo3/P9+B3NJxm0YlHg=
+github.com/brianmmcclain/tmdbgo v0.0.0-20251222172847-079fb64c32db/go.mod h1:KmDPkX+zThPbVKXc7f0GrNcOsFgdWYgZI2nCSC8gmoo=
 github.com/google/go-cmp v0.6.0/go.mod h1:17dUlkBOakJ0+DkrSSNjCkIjxS6bF9zb3elmeNGIjoY=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

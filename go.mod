@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/PuerkitoBio/goquery v1.11.0
-	github.com/brianmmcclain/tmdbgo v0.0.0-20251130233202-d5eed3bee97c
+	github.com/brianmmcclain/tmdbgo v0.0.0-20251222172847-079fb64c32db
 )
 
 require (
